@@ -1,2 +1,2 @@
-# docs-fr
-Documentation in French
+# La documentation du tournoi Numerai
+
