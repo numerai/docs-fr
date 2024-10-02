@@ -35,24 +35,27 @@ Votre objectif est de construire un modèle pour prédire la cible future en uti
 Voici un exemple de base utilisant XGBoost sous Python. Nous entraînons le modèle en utilisant les données historiques et faisons des prédictions sur les données réelles du tournoi.
 
 ```python
+from numerapi import NumerAPI
 import pandas as pd
-from xgboost import XGBRegressor
+import lightgbm as lgb
 
-# training data contains features and targets
-training_data = pd.read_csv("numerai_training_data.csv").set_index("id")
+napi = NumerAPI()
+napi.download_dataset("v5.0/train.parquet")
+training_data = pd.read_parquet("v5.0/tra.parquet")
 
-# tournament data contains features only
-tournament_data = pd.read_csv("numerai_tournament_data.csv").set_index("id")
-feature_names = [f for f in training_data.columns if "feature" in f]
+features = [f for f in training_data.columns if "feature" in f]
 
-# train a model to make predictions on tournament data
-model = XGBRegressor(max_depth=5, learning_rate=0.01, \
-                     n_estimators=2000, colsample_bytree=0.1)
-model.fit(training_data[feature_names], training_data["target"])
-
-# submit predictions to numer.ai
-predictions = model.predict(tournament_data[feature_names])
-predictions.to_csv("predictions.csv")
+model = lgb.LGBMRegressor(
+      n_estimators=2000,
+      learning_rate=0.01,
+      max_depth=5,
+      num_leaves=2 ** 5,
+      colsample_bytree=0.1
+)
+model.fit(
+      training_data[features],
+      training_data["target"]
+)
 ```
 
 Vous pouvez utiliser n'importe quel langage ou structure pour créer votre modèle. Consultez nos [scripts](https://github.com/numerai/example-scripts) pour d'autres exemples de modèles et de cahiers de recherche exploratoire. Rendez-vous sur le [forum](https://forum.numer.ai) pour découvrir les derniers sujets de recherche de l'équipe et de la communauté.
@@ -113,7 +116,7 @@ ranked_predictions = predictions.rank(pct=True, method="first")
 correlation = np.corrcoef(labels, ranked_predictions)[0, 1]
 ```
 
-Vous êtes également noté sur votre [contribution au méta-modèle](https://docs.numer.ai/tournament/metamodel-contribution) (`mmc`) et la [corrélation neutre](https://docs.numer.ai/tournament/feature-neutral-correlation) (`fnc`). Plus la contribution du méta-modèle et la corrélation neutre des caractéristiques sont élevées, mieux c'est.
+Vous êtes également noté sur votre [contribution au méta-modèle](https://app.gitbook.com/s/-LmGruQ\_-ZYj9XMQUd5x/numerai-tournament/scoring/meta-model-contribution-mmc) (`mmc`) et la [corrélation neutre](https://app.gitbook.com/s/-LmGruQ\_-ZYj9XMQUd5x/numerai-tournament/scoring/feature-neutral-correlation) (`fnc`). Plus la contribution du méta-modèle et la corrélation neutre des caractéristiques sont élevées, mieux c'est.
 
 Chaque soumission sera notée sur la durée du tour d'environ 4 semaines. Les soumissions recevront leur premier score à partir du jeudi après la date limite du lundi et le score final le mercredi 4 semaines plus tard pour un total de 20 scores.
 
@@ -170,7 +173,7 @@ La valeur de votre mise augmentera tant que vous continuerez à avoir des scores
 
 ### Classement
 
-Le classement peut être trié en fonction de le `corr`, `mmc` et `fnc` du modèle. La [Reputation](https://docs.numer.ai/tournament/reputation) est la moyenne pondérée d'une métrique donnée au cours des 20 dernières rondes.
+Le classement peut être trié en fonction de le `corr`, `mmc` et `fnc` du modèle.
 
 Gardez un œil sur le classement pour voir comment vos modèles se comparent aux autres modèles en termes de performances et de rendements de la mise.
 
@@ -178,4 +181,4 @@ Gardez un œil sur le classement pour voir comment vos modèles se comparent aux
 
 Nous sommes ici pour vous aider.
 
-Retrouvez-nous sur [RocketChat](https://community.numer.ai) pour toute question, besoin de support et commentaires !
+Retrouvez-nous sur [Discord](https://discord.gg/n2YgnHEM) pour toute question, besoin de support et commentaires !
